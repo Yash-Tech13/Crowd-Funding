@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Web3Modal from "web3modal";
-const ethers = require("ethers")
+const {ethers, JsonRpcProvider} =  require('ethers');
 
 // Internal imports
-import { crowdfundingAddress, crowdfundingABI } from "./context";
+import { crowdfundingAddress, crowdfundingABI } from "./constants";
 
 // ---Fetching smart contract
 const fetchContract = (signerOrProvider) =>
@@ -14,13 +14,17 @@ export const CrowdfundingProvider = ({ children }) => {
   const titleData = "Crowdfunding Contract";
   const [currentAccount, setCurrentAccount] = useState("");
 
+  useEffect(() => {
+    checkIfWalletConnected();
+  }, []);
+  
   const createCampaign = async (campaign) => {
-    const [title, description, amount, deadline] = campaign;
+    const {title, description, amount, deadline} = campaign;
     const web3Modal = new Web3Modal();
     const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection);
-    const signer = provider.getSigner();
-    const contract = fetchContract(signer);
+    const provider = new ethers.BrowserProvider(connection);
+    const signer = await provider.getSigner();
+    const contract = await fetchContract(signer);
 
     console.log(currentAccount);
     try {
@@ -28,7 +32,7 @@ export const CrowdfundingProvider = ({ children }) => {
         currentAccount, //owner
         title, //title
         description, //description
-        ethers.utils.parseUnits(amount, 18),
+        ethers.parseUnits(amount, 18),
         new Date(deadline).getTime() //deadline
       );
 
@@ -40,7 +44,7 @@ export const CrowdfundingProvider = ({ children }) => {
   };
 
   const getCampaigns = async () => {
-    const provider = new ethers.providers.JsonRpcProvider();
+    const provider = new JsonRpcProvider();
     const contract = await fetchContract(provider);
 
     const campaigns = await contract.getCampaigns();
@@ -48,9 +52,9 @@ export const CrowdfundingProvider = ({ children }) => {
       owner: campaign.owner,
       title: campaign.title,
       description: campaign.description,
-      target: ethers.utils.formatEther(campaign.target.toString()),
-      deadline: campaign.deadline.toNumber(),
-      amountCollected: ethers.utils.formatEther(
+      target: ethers.formatEther(campaign.target.toString()),
+      deadline: campaign.deadline.toString(),
+      amountCollected: ethers.formatEther(
         campaign.amountCollected.toString()
       ),
       pid: i,
@@ -59,7 +63,7 @@ export const CrowdfundingProvider = ({ children }) => {
   };
 
   const getUserCampaigns = async () => {
-    const provider = new ethers.providers.JsonRpcProvider();
+    const provider = new JsonRpcProvider();
     const contract = await fetchContract(provider);
 
     const campaigns = await contract.getCampaigns();
@@ -70,21 +74,21 @@ export const CrowdfundingProvider = ({ children }) => {
     const currentUser = accounts[0];
 
     const filteredCampaigns = campaigns.filter(
-      (campaign) => campaign.owner === currentUser
+      (campaign) => 
+        (campaign.owner.toLowerCase() === currentUser.toLowerCase())
     );
-
+    
     const userData = filteredCampaigns.map((campaign, i) => ({
       owner: campaign.owner,
       title: campaign.title,
       description: campaign.description,
-      target: ethers.utils.formatEther(campaign.target.toString()),
-      deadline: campaign.deadline.toNumber(),
-      amountCollected: ethers.utils.formatEther(
+      target: ethers.formatEther(campaign.target.toString()),
+      deadline: campaign.deadline.toString(),
+      amountCollected: ethers.formatEther(
         campaign.amountCollected.toString()
       ),
       pid: i,
     }));
-
     return userData;
   };
 
@@ -92,7 +96,7 @@ export const CrowdfundingProvider = ({ children }) => {
     const web3Modal = new Web3Modal();
     const connection = await web3Modal.connect();
     const provider = new ethers.providers.Web3Provider(connection);
-    const signer = provider.getSigner();
+    const signer = await provider.getSigner();
     const contract = fetchContract(signer);
 
     const campaignData = await contract.donateToCampaign(pId, {
@@ -106,7 +110,7 @@ export const CrowdfundingProvider = ({ children }) => {
   };
 
   const getDonations = async (pId) => {
-    const provider = new ethers.providers.JsonRpcProvider();
+    const provider = new JsonRpcProvider();
     const contract = await fetchContract(provider);
 
     const donations = await contract.getDonors(pId);
@@ -127,8 +131,8 @@ export const CrowdfundingProvider = ({ children }) => {
   //---Check if Wallet is connected
   const checkIfWalletConnected = async () => {
     try {
-      if (!window.ethereum) {
-        return setOpenError(true), setError("Install Metamask");
+      if (typeof window.ethereum === 'undefined') {
+        return console.log("Install Metamask");
       }
 
       const accounts = await window.ethereum.request({
@@ -145,9 +149,7 @@ export const CrowdfundingProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    checkIfWalletConnected();
-  }, []);
+  
 
   //----Connect Wallet Function
   const connectWallet = async () => {

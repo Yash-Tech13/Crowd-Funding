@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "bufferutil": "^4.0.7",
-    "ethers": "^6.7.1",
+    "ethers": "^6.8.0",
+    "hardhat": "^2.18.0",
     "next": "13.5.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -21,8 +22,8 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.4.1",
     "autoprefixer": "^10.4.16",
-    "hardhat": "^2.17.3",
     "postcss": "^8.4.30",
     "tailwindcss": "^3.3.3"
   }

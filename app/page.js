@@ -44,9 +44,9 @@ function page() {
 
         <Card 
           title="Your Created Campaign"
-          allCampaign={userCampaign}
-          setOpenModel={setOpenModel}
-          setDonate={setDonateCampaign}
+          allCampaign = {userCampaign}
+          setOpenModel = {setOpenModel}
+          setDonate = {setDonateCampaign}
         />
 
         {openModel && (
