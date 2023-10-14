@@ -33,9 +33,10 @@ export const CrowdfundingProvider = ({ children }) => {
         title, //title
         description, //description
         ethers.parseUnits(amount, 18),
-        new Date(deadline).getTime() //deadline
+        Math.floor(new Date(deadline).getTime()/1000) //deadline
       );
-
+      console.log(deadline);
+      console.log(new Date(deadline));
       await transaction.wait();
       console.log("contract call success", transaction);
     } catch (error) {
@@ -53,7 +54,8 @@ export const CrowdfundingProvider = ({ children }) => {
       title: campaign.title,
       description: campaign.description,
       target: ethers.formatEther(campaign.target.toString()),
-      deadline: campaign.deadline.toString(),
+      deadline: (Number(campaign.deadline) * 1000).toString(),
+      // campaign.deadline.toString(),
       amountCollected: ethers.formatEther(
         campaign.amountCollected.toString()
       ),
@@ -83,7 +85,8 @@ export const CrowdfundingProvider = ({ children }) => {
       title: campaign.title,
       description: campaign.description,
       target: ethers.formatEther(campaign.target.toString()),
-      deadline: campaign.deadline.toString(),
+      deadline: (Number(campaign.deadline) * 1000).toString(),
+      // campaign.deadline.toString(),
       amountCollected: ethers.formatEther(
         campaign.amountCollected.toString()
       ),
@@ -95,12 +98,12 @@ export const CrowdfundingProvider = ({ children }) => {
   const donate = async (pId, amount) => {
     const web3Modal = new Web3Modal();
     const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection);
+    const provider = new ethers.BrowserProvider(connection);
     const signer = await provider.getSigner();
     const contract = fetchContract(signer);
 
     const campaignData = await contract.donateToCampaign(pId, {
-      value: ethers.utils.parseEther(amount),
+      value: ethers.parseEther(amount),
     });
 
     await campaignData.wait();
@@ -121,7 +124,7 @@ export const CrowdfundingProvider = ({ children }) => {
     for (let i = 0; i < numberOfDonations; i++) {
       parsedDonations.push({
         donor: donations[0][i],
-        donation: ethers.utils.formatEther(donations[1][i].toString()),
+        donation: ethers.formatEther(donations[1][i].toString()),
       });
     }
 

@@ -56,6 +56,7 @@ function page() {
             donate={donateCampaign}
             donateFunction={donate}
           />
+          
         )}
     </>
   );
